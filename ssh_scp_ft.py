@@ -1,11 +1,12 @@
 import paramiko
 import glob
+import os
 
 def scp_transfer(source, destination, hostname, port, username, password=None, private_key=None):
     # Establecer la conexión SSH
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
+
     try:
         # Autenticación
         if password:
@@ -15,13 +16,27 @@ def scp_transfer(source, destination, hostname, port, username, password=None, p
         else:
             raise ValueError("Se debe proporcionar una contraseña o una clave privada para la autenticación SSH.")
 
-        # Crear un canal SCP
+        # Crear un canal SFTP
         with ssh_client.open_sftp() as sftp:
-            # Transferir los archivos con extensión .png
-            for file_path in glob.glob(source):
-                file_name = file_path.split("\\")[-1]
-                sftp.put(file_path, f"{destination}/{file_name}")
+            # Verificar si glob está encontrando archivos
+            files = glob.glob(source)
+            if not files:
+                print(f"No se encontraron archivos con el patrón: {source}")
+                return
+
+            # Transferir los archivos encontrados
+            for file_path in files:
+                file_name = os.path.basename(file_path)  # Obtener el nombre del archivo de la ruta
+                print(f"Transfiriendo archivo: {file_name}")
+
+                # Corregir la ruta de destino
+                if not destination.endswith(os.sep):
+                    destination += os.sep
+
+                # Transferir el archivo al destino
+                sftp.put(file_path, os.path.join(destination, file_name))
                 print(f"Archivo {file_name} transferido exitosamente.")
+                
     except Exception as e:
         print(f"Error al transferir los archivos: {e}")
     finally:
