@@ -5,8 +5,8 @@ import struct
 import numpy as np
 from datetime import datetime
 
-HOST = "0.0.0.0"
-PORT = 9999
+HOST = "0.0.0.0" # No cambie (ANY).
+PORT = 9999 # Cambie según sus requerimientos..
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
