@@ -1,45 +1,28 @@
+# Utilice protoclo UDP.
+import cv2
 import socket
-import pyaudio
+import struct
 
-# Configuración de la dirección IP y el puerto del host receptor
-host = '193.161.193.99'
-port = 36312
+SERVER_IP = "192.168.1.127" # Cambie según sus requerimientos.
+PORT = 5555 # Ajuste según sus requerimientos...
 
-# Configuración de PyAudio
-chunk_size = 1024
-sample_format = pyaudio.paInt16
-channels = 2
-rate = 44100
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_IP, PORT))
 
-# Inicialización de PyAudio
-audio = pyaudio.PyAudio()
+cap = cv2.VideoCapture(0)
 
-# Apertura del flujo de grabación desde el micrófono
-stream = audio.open(format=sample_format,
-                    channels=channels,
-                    rate=rate,
-                    input=True,
-                    frames_per_buffer=chunk_size)
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    # Comprimir frame a JPEG
+    ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
+    data = buffer.tobytes()
+    
+    # Enviar tamaño y datos
+    message_size = struct.pack(">L", len(data))  # ">L" = big-endian unsigned long
+    client_socket.sendall(message_size + data)
 
-# Creación del socket UDP
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-print("Transmitiendo audio por UDP...")
-
-try:
-    while True:
-        # Lectura de los datos del flujo de grabación
-        data = stream.read(chunk_size)
-        
-        # Envío de los datos al host receptor
-        sock.sendto(data, (host, port))
-except KeyboardInterrupt:
-    pass
-
-print("Transmisión finalizada.")
-
-# Cierre del flujo de grabación y del socket
-stream.stop_stream()
-stream.close()
-audio.terminate()
-sock.close()
+cap.release()
+client_socket.close()
