@@ -1,40 +1,29 @@
+# Use protocolo UDP.
 import socket
 import pyaudio
+import numpy as np
 
-# Configuración de la dirección IP y el puerto para recibir audio
-host = '0.0.0.0'  # Escucha en todas las interfaces de red
-port = 1234
+host = '0.0.0.0' # Mantenga (ANY).
+port = 8080 # Ajsute Port segun necesidades.
 
-# Configuración de PyAudio
 chunk_size = 1024
 sample_format = pyaudio.paInt16
-channels = 2
-rate = 44100
+channels = 1 # Ajustar en caso de que las máquinas lo requieran (emisor, Receptor).
+rate = 21050
+AMPLIFY = 3.6
 
-# Inicialización de PyAudio
 audio = pyaudio.PyAudio()
-
-# Configuración del socket UDP
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((host, port))
 
-print("Esperando conexión...")
-
-# Inicialización del flujo de reproducción de audio
 stream = audio.open(format=sample_format,
                     channels=channels,
                     rate=rate,
                     output=True,
                     frames_per_buffer=chunk_size)
 
-print("Reproduciendo audio...")
-
 while True:
-    data, addr = sock.recvfrom(chunk_size)
-    stream.write(data)  # Reproducir los datos de audio recibidos
-
-# Cierre del flujo de reproducción y del socket
-stream.stop_stream()
-stream.close()
-audio.terminate()
-sock.close()
+    data, addr = sock.recvfrom(4096) 
+    audio_data = np.frombuffer(data, dtype=np.int16)
+    amplified = np.clip(audio_data * AMPLIFY, -32768, 32767).astype(np.int16)
+    stream.write(amplified.tobytes())
