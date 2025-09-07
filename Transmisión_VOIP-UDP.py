@@ -1,28 +1,35 @@
-# Utilice protoclo UDP.
-import cv2
+# Emisor UDP de audio
 import socket
-import struct
+import pyaudio
 
-SERVER_IP = "192.168.1.127" # Cambie según sus requerimientos.
-PORT = 5555 # Ajuste según sus requerimientos...
+# Cambia esto por la IP del receptor
+dest_ip = '192.168.1.100'  # ⚠️ Cambia a la IP real del receptor
+dest_port = 8080
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, PORT))
+chunk_size = 1024
+sample_format = pyaudio.paInt16
+channels = 1 # Ajuste Según el hardware del emisor.
+rate = 21050
 
-cap = cv2.VideoCapture(0)
+audio = pyaudio.PyAudio()
+stream = audio.open(format=sample_format,
+                    channels=channels,
+                    rate=rate,
+                    input=True,
+                    frames_per_buffer=chunk_size)
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    
-    # Comprimir frame a JPEG
-    ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
-    data = buffer.tobytes()
-    
-    # Enviar tamaño y datos
-    message_size = struct.pack(">L", len(data))  # ">L" = big-endian unsigned long
-    client_socket.sendall(message_size + data)
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-cap.release()
-client_socket.close()
+print(f"[🔊] Enviando audio a {dest_ip}:{dest_port}... (Ctrl+C para salir)")
+
+try:
+    while True:
+        data = stream.read(chunk_size, exception_on_overflow=False)
+        sock.sendto(data, (dest_ip, dest_port))
+except KeyboardInterrupt:
+    print("\n[⛔] Transmisión finalizada por el usuario.")
+finally:
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+    sock.close()
